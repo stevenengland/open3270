@@ -1,0 +1,64 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Open3270Library", "Open3270Library\Open3270Library.csproj", "{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{E582422F-6081-48BE-892D-AAA75999EDC0}"
+	ProjectSection(SolutionItems) = preProject
+		Docs\3270\ToDo.one = Docs\3270\ToDo.one
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWPF", "SampleWPF\SampleWPF.csproj", "{347F533E-6248-48F9-B9A4-4686729823E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleForm", "SampleForm\SampleForm.csproj", "{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}.Release|Mixed Platforms.Build.0 = Release|x86
+		{0C1C4A52-4B1A-49E3-B980-B11C6D8B51EE}.Release|Win32.ActiveCfg = Release|Any CPU
+		{347F533E-6248-48F9-B9A4-4686729823E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{347F533E-6248-48F9-B9A4-4686729823E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{347F533E-6248-48F9-B9A4-4686729823E2}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{347F533E-6248-48F9-B9A4-4686729823E2}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{347F533E-6248-48F9-B9A4-4686729823E2}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{347F533E-6248-48F9-B9A4-4686729823E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{347F533E-6248-48F9-B9A4-4686729823E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{347F533E-6248-48F9-B9A4-4686729823E2}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{347F533E-6248-48F9-B9A4-4686729823E2}.Release|Mixed Platforms.Build.0 = Release|x86
+		{347F533E-6248-48F9-B9A4-4686729823E2}.Release|Win32.ActiveCfg = Release|Any CPU
+		{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}.Release|Mixed Platforms.Build.0 = Release|x86
+		{6D1184E9-55E2-465E-8FBB-DC00FEECAEB6}.Release|Win32.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+EndGlobal
