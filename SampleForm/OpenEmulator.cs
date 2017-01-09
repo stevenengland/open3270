@@ -10,6 +10,7 @@ namespace SampleForm
     {
         private readonly TNEmulator _tn3270 = new TNEmulator();
         private bool _isRedrawing;
+
         public void Connect(string server, int port, string type, bool useSsl)
         {
             _tn3270.Config.UseSSL = useSsl;
@@ -18,12 +19,13 @@ namespace SampleForm
 
             Redraw();
         }
+
         public void Redraw()
         {
-            RichTextBox render = new RichTextBox {Text = _tn3270.CurrentScreenXML.Dump()};
+            var render = new RichTextBox {Text = _tn3270.CurrentScreenXML.Dump()};
 
             Clear();
-            Font fnt = new Font("Consolas", 10);
+            var fnt = new Font("Consolas", 10);
             render.Font = new Font(fnt, FontStyle.Regular);
 
             _isRedrawing = true;
@@ -31,12 +33,12 @@ namespace SampleForm
 
             if (_tn3270.CurrentScreenXML.Fields == null)
             {
-                Color clr = Color.Lime;
+                var clr = Color.Lime;
                 render.SelectionProtected = false;
                 render.SelectionColor = clr;
                 render.DeselectAll();
 
-                for (int i = 0; i < render.Text.Length; i++)
+                for (var i = 0; i < render.Text.Length; i++)
                 {
                     render.Select(i, 1);
                     if (render.SelectedText != " " && render.SelectedText != "\n")
@@ -46,13 +48,13 @@ namespace SampleForm
             }
 
             render.SelectionProtected = true;
-            foreach (XMLScreenField field in _tn3270.CurrentScreenXML.Fields)
+            foreach (var field in _tn3270.CurrentScreenXML.Fields)
             {
                 //if (string.IsNullOrEmpty(field.Text))
                 //    continue;
 
                 Application.DoEvents();
-                Color clr = Color.Lime;
+                var clr = Color.Lime;
                 if (field.Attributes.FieldType == "High" && field.Attributes.Protected)
                     clr = Color.White;
                 else if (field.Attributes.FieldType == "High")
@@ -67,7 +69,7 @@ namespace SampleForm
                     render.SelectionProtected = true;
             }
 
-            for (int i = 0; i < render.Text.Length; i++)
+            for (var i = 0; i < render.Text.Length; i++)
             {
                 render.Select(i, 1);
                 if (render.SelectedText != " " && render.SelectedText != "\n" && render.SelectionColor == Color.Black)
@@ -96,6 +98,7 @@ namespace SampleForm
                 e.Handled = true;
             }
         }
+
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
             if (e.KeyChar == '\r')
@@ -113,6 +116,7 @@ namespace SampleForm
             _tn3270.SetText(e.KeyChar.ToString());
             base.OnKeyPress(e);
         }
+
         protected override void OnSelectionChanged(EventArgs e)
         {
             if (_tn3270.IsConnected)

@@ -1,4 +1,5 @@
 #region License
+
 /* 
  *
  * Open3270 - A C# implementation of the TN3270/TN3270E protocol
@@ -20,38 +21,38 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 #endregion
 
 using System.Text;
 
 namespace StEn.Open3270.Interfaces
 {
-	/// <summary>
-	/// Summary description for StringAudit.
-	/// </summary>
-	public class StringAudit : IAudit
-	{
-		StringBuilder mData = null;
-		internal StringAudit()
-		{
-			mData = new StringBuilder();
-		}
+    /// <summary>
+    ///     Summary description for StringAudit.
+    /// </summary>
+    public class StringAudit : IAudit
+    {
+        private readonly StringBuilder mData;
 
-		public void Write(string text)
-		{
-			mData.Append(text);
-		}
+        internal StringAudit()
+        {
+            mData = new StringBuilder();
+        }
 
-		public void WriteLine(string text)
-		{
-			mData.Append(text+"\n");
-		}
+        public void Write(string text)
+        {
+            mData.Append(text);
+        }
 
-		public override string ToString()
-		{
-			return mData.ToString();
-		}
+        public void WriteLine(string text)
+        {
+            mData.Append(text + "\n");
+        }
 
-
-	}
+        public override string ToString()
+        {
+            return mData.ToString();
+        }
+    }
 }

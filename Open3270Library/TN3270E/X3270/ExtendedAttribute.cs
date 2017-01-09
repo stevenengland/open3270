@@ -1,4 +1,5 @@
 #region License
+
 /* 
  *
  * Open3270 - A C# implementation of the TN3270/TN3270E protocol
@@ -20,31 +21,30 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 #endregion
 
 namespace StEn.Open3270.TN3270E.X3270
 {
-	/// <summary>
-	/// Summary description for ExtendedAttribute.
-	/// </summary>
-	internal class ExtendedAttribute
-	{
-public const byte  GR_BLINK	=0x01;
-public const byte  GR_REVERSE	=0x02;
-public const byte  GR_UNDERLINE	=0x04;
-public const byte  GR_INTENSIFY	=0x08;
+    /// <summary>
+    ///     Summary description for ExtendedAttribute.
+    /// </summary>
+    internal class ExtendedAttribute
+    {
+        public const byte GR_BLINK = 0x01;
+        public const byte GR_REVERSE = 0x02;
+        public const byte GR_UNDERLINE = 0x04;
+        public const byte GR_INTENSIFY = 0x08;
 
-public const byte  CS_MASK		=0x03;	/* mask for specific character sets */
-public const byte CS_GE		=0x04;	/* cs flag for Graphic Escape */
+        public const byte CS_MASK = 0x03; /* mask for specific character sets */
+        public const byte CS_GE = 0x04; /* cs flag for Graphic Escape */
+        public byte bg;
 
-		internal ExtendedAttribute()
-		{
-			cs = 0;
-			fg = 0;
-			gr = 0;
-			bg = 0;
-		}
-        internal void Clear()
+        public byte cs;
+        public byte fg;
+        public byte gr;
+
+        internal ExtendedAttribute()
         {
             cs = 0;
             fg = 0;
@@ -52,14 +52,17 @@ public const byte CS_GE		=0x04;	/* cs flag for Graphic Escape */
             bg = 0;
         }
 
-		public byte cs;
-		public byte fg;
-		public byte bg;
-		public byte gr;
+        public bool IsZero
+        {
+            get { return cs + fg + bg + gr == 0; }
+        }
 
-		public bool IsZero
-		{
-			get { return (cs+fg+bg+gr)==0;}
-		}
-	}
+        internal void Clear()
+        {
+            cs = 0;
+            fg = 0;
+            gr = 0;
+            bg = 0;
+        }
+    }
 }

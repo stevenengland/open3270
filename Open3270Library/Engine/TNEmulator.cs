@@ -1,4 +1,5 @@
 #region License
+
 /* 
  *
  * Open3270 - A C# implementation of the TN3270/TN3270E protocol
@@ -20,6 +21,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 #endregion
 
 using System;
@@ -33,82 +35,78 @@ using StEn.Open3270.TN3270E;
 
 namespace StEn.Open3270.Engine
 {
-
-	/// <summary>
-	/// Summary description for TNEmulator.
-	/// </summary>
-	public class TNEmulator : IDisposable
-	{
+    /// <summary>
+    ///     Summary description for TNEmulator.
+    /// </summary>
+    public class TNEmulator : IDisposable
+    {
         #region Private Variables and Objects
-        static bool firstTime = true;
 
-		bool debug = false;
-		bool isDisposed = false;
-		MySemaphore semaphore = new MySemaphore(0, 9999);
-		private object objectState;
+        private static bool firstTime = true;
 
-		IXMLScreen currentScreenXML; // don't access me directly, use helper
-		string mScreenName = null;
-		IAudit sout = null;
-		bool mUseSSL = false;
-        private string _localIP = string.Empty;
-		ConnectionConfig mConnectionConfiguration = null;
-		TN3270API currentConnection = null;
+        private readonly MySemaphore semaphore = new MySemaphore(0, 9999);
+
+        private IXMLScreen currentScreenXML; // don't access me directly, use helper
+        private string mScreenName;
+        private TN3270API currentConnection;
+
         #endregion
 
         #region Event Handlers
+
         /// <summary>
-        /// Event fired when the host disconnects. Note - this must be set before you connect to the host.
+        ///     Event fired when the host disconnects. Note - this must be set before you connect to the host.
         /// </summary>
         public event OnDisconnectDelegate Disconnected;
+
         public event EventHandler CursorLocationChanged;
-        OnDisconnectDelegate apiOnDisconnectDelegate = null;
+        private OnDisconnectDelegate apiOnDisconnectDelegate;
+
         #endregion
 
         #region Constructors / Destructors
+
         public TNEmulator()
-		{
-			currentScreenXML = null;
-			currentConnection = null;
-			this.mConnectionConfiguration = new ConnectionConfig();
-		}
+        {
+            currentScreenXML = null;
+            currentConnection = null;
+            Config = new ConnectionConfig();
+        }
+
         ~TNEmulator()
         {
             Dispose(false);
         }
+
         #endregion
 
         #region Properties
+
         /// <summary>
-        /// Returns whether or not this session is connected to the mainframe.
+        ///     Returns whether or not this session is connected to the mainframe.
         /// </summary>
         public bool IsConnected
         {
             get
             {
-                if (this.currentConnection == null)
+                if (currentConnection == null)
                     return false;
-                return this.currentConnection.IsConnected;
+                return currentConnection.IsConnected;
             }
+        }
 
-        }
         /// <summary>
-        /// Gets or sets the ojbect state.
+        ///     Gets or sets the ojbect state.
         /// </summary>
-        public object ObjectState
-        {
-            get { return objectState; }
-            set { objectState = value; }
-        }
+        public object ObjectState { get; set; }
+
         /// <summary>
-        /// Returns whether or not the disposed action has been performed on this object.
+        ///     Returns whether or not the disposed action has been performed on this object.
         /// </summary>
-        public bool IsDisposed
-        {
-            get { return isDisposed; }
-        }
+        public bool IsDisposed { get; private set; }
+
         /// <summary>
-        /// Returns the reason why the session has been disconnected.
+        ///     Returns the reason why the session has been disconnected.
         /// </summary>
         public string DisconnectReason
         {
@@ -116,93 +114,91 @@ namespace StEn.Open3270.Engine
             {
                 lock (this)
                 {
-                    if (this.currentConnection != null)
-                        return this.currentConnection.DisconnectReason;
+                    if (currentConnection != null)
+                        return currentConnection.DisconnectReason;
                 }
                 return string.Empty;
             }
         }
+
         /// <summary>
-        /// Returns zero if the keyboard is currently locked (inhibited)
-        /// non-zero otherwise
+        ///     Returns zero if the keyboard is currently locked (inhibited)
+        ///     non-zero otherwise
         /// </summary>
         public int KeyboardLocked
         {
             get
             {
-                if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
-                return this.currentConnection.KeyboardLock;
+                if (currentConnection == null)
+                    throw new TNHostException("TNEmulator is not connected",
+                        "There is no currently open TN3270 connection", null);
+                return currentConnection.KeyboardLock;
             }
         }
+
         /// <summary>
-        /// Returns the zero based X coordinate of the cursor
+        ///     Returns the zero based X coordinate of the cursor
         /// </summary>
         public int CursorX
         {
             get
             {
-                if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
-                return this.currentConnection.CursorX;
+                if (currentConnection == null)
+                    throw new TNHostException("TNEmulator is not connected",
+                        "There is no currently open TN3270 connection", null);
+                return currentConnection.CursorX;
             }
         }
+
         /// <summary>
-        /// Returns the zero based Y coordinate of the cursor
+        ///     Returns the zero based Y coordinate of the cursor
         /// </summary>
         public int CursorY
         {
             get
             {
-                if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
-                return this.currentConnection.CursorY;
+                if (currentConnection == null)
+                    throw new TNHostException("TNEmulator is not connected",
+                        "There is no currently open TN3270 connection", null);
+                return currentConnection.CursorY;
             }
         }
-        /// <summary>
-        /// Returns the IP address of the mainframe.
-        /// </summary>
-        public string LocalIP
-        {
-            get { return _localIP; }
-        }
-        /// <summary>
-        /// Returns the internal configuration object for this connection
-        /// </summary>
-        public ConnectionConfig Config
-        {
-            get { return this.mConnectionConfiguration; }
-        }
-        /// <summary>
-        /// Debug flag - setting this to true turns on much more debugging output on the
-        /// Audit output
-        /// </summary>
-        public bool Debug
-        {
-            get { return debug; }
-            set { debug = value; }
 
-        }
         /// <summary>
-        /// Set this flag to true to enable SSL connections. False otherwise
+        ///     Returns the IP address of the mainframe.
         /// </summary>
-        public bool UseSSL
-        {
-            get { return mUseSSL; }
-            set { mUseSSL = value; }
-        }
+        public string LocalIP { get; private set; } = string.Empty;
+
         /// <summary>
-        /// Returns the current screen XML
+        ///     Returns the internal configuration object for this connection
+        /// </summary>
+        public ConnectionConfig Config { get; private set; }
+
+        /// <summary>
+        ///     Debug flag - setting this to true turns on much more debugging output on the
+        ///     Audit output
+        /// </summary>
+        public bool Debug { get; set; } = false;
+
+        /// <summary>
+        ///     Set this flag to true to enable SSL connections. False otherwise
+        /// </summary>
+        public bool UseSSL { get; set; } = false;
+
+        /// <summary>
+        ///     Returns the current screen XML
         /// </summary>
         public IXMLScreen CurrentScreenXML
         {
             get
             {
-
-                if (this.currentScreenXML == null)
+                if (currentScreenXML == null)
                 {
-                    if (sout != null && Debug == true)
+                    if (Audit != null && Debug)
                     {
-                        sout.WriteLine("CurrentScreenXML reloading by calling GetScreenAsXML()");
+                        Audit.WriteLine("CurrentScreenXML reloading by calling GetScreenAsXML()");
                         currentScreenXML = GetScreenAsXML();
-                        currentScreenXML.Dump(sout);
+                        currentScreenXML.Dump(Audit);
                     }
                     else
                     {
@@ -211,30 +207,30 @@ namespace StEn.Open3270.Engine
                     }
                 }
                 //
-                return this.currentScreenXML;
+                return currentScreenXML;
             }
         }
+
         /// <summary>
-        /// Auditing interface
+        ///     Auditing interface
         /// </summary>
-        public IAudit Audit
-        {
-            get { return sout; }
-            set { sout = value; }
-        }
+        public IAudit Audit { get; set; } = null;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
-        /// Disposes of this emulator object.
+        ///     Disposes of this emulator object.
         /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         /// <summary>
-        /// Sends the specified key stroke to the emulator.
+        ///     Sends the specified key stroke to the emulator.
         /// </summary>
         /// <param name="waitForScreenToUpdate"></param>
         /// <param name="key"></param>
@@ -242,24 +238,24 @@ namespace StEn.Open3270.Engine
         /// <returns></returns>
         public bool SendKey(bool waitForScreenToUpdate, TnKey key, int timeout)
         {
-
-            bool triggerSubmit = false;
-            bool success = false;
+            var triggerSubmit = false;
+            var success = false;
             string command;
 
             //This is only used as a parameter for other methods when we're using function keys.
             //e.g. F1 yields a command of "PF" and a functionInteger of 1.
-            int functionInteger = -1;
+            var functionInteger = -1;
 
 
-            if (sout != null && Debug == true)
+            if (Audit != null && Debug)
             {
-                sout.WriteLine("SendKeyFromText(" + waitForScreenToUpdate + ", \"" + key.ToString() + "\", " + timeout + ")");
+                Audit.WriteLine("SendKeyFromText(" + waitForScreenToUpdate + ", \"" + key + "\", " + timeout + ")");
             }
 
             if (currentConnection == null)
             {
-                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
             }
 
 
@@ -280,18 +276,18 @@ namespace StEn.Open3270.Engine
             }
 
             //Should this action be followed by a submit?
-            triggerSubmit = this.Config.SubmitAllKeyboardCommands || this.currentConnection.KeyboardCommandCausesSubmit(command);
+            triggerSubmit = Config.SubmitAllKeyboardCommands || currentConnection.KeyboardCommandCausesSubmit(command);
 
             if (triggerSubmit)
             {
                 lock (this)
                 {
-                    this.DisposeOfCurrentScreenXML();
+                    DisposeOfCurrentScreenXML();
                     currentScreenXML = null;
 
-                    if (sout != null && Debug)
+                    if (Audit != null && Debug)
                     {
-                        sout.WriteLine("mre.Reset. Count was " + semaphore.Count);
+                        Audit.WriteLine("mre.Reset. Count was " + semaphore.Count);
                     }
 
                     // Clear to initial count (0)
@@ -299,12 +295,12 @@ namespace StEn.Open3270.Engine
                 }
             }
 
-            success = this.currentConnection.ExecuteAction(triggerSubmit, command, functionInteger);
+            success = currentConnection.ExecuteAction(triggerSubmit, command, functionInteger);
 
 
-            if (sout != null && Debug)
+            if (Audit != null && Debug)
             {
-                sout.WriteLine("SendKeyFromText - submit = " + triggerSubmit + " ok=" + success);
+                Audit.WriteLine("SendKeyFromText - submit = " + triggerSubmit + " ok=" + success);
             }
 
             if (triggerSubmit && success)
@@ -312,7 +308,7 @@ namespace StEn.Open3270.Engine
                 // Wait for a valid screen to appear
                 if (waitForScreenToUpdate)
                 {
-                    success = this.Refresh(true, timeout);
+                    success = Refresh(true, timeout);
                 }
                 else
                 {
@@ -321,149 +317,147 @@ namespace StEn.Open3270.Engine
             }
 
             return success;
-
         }
+
         /// <summary>
-        /// Waits until the keyboard state becomes unlocked.
+        ///     Waits until the keyboard state becomes unlocked.
         /// </summary>
         /// <param name="timeoutms"></param>
         public void WaitTillKeyboardUnlocked(int timeoutms)
         {
-            DateTime dttm = DateTime.Now.AddMilliseconds(timeoutms);
+            var dttm = DateTime.Now.AddMilliseconds(timeoutms);
 
             while (KeyboardLocked != 0 && DateTime.Now < dttm)
             {
                 Thread.Sleep(10); // Wait 1/100th of a second
             }
         }
+
         /// <summary>
-        /// Refresh the current screen.  If timeout > 0, it will wait for 
-        /// this number of milliseconds.
-        /// If waitForValidScreen is true, it will wait for a valid screen, otherwise it
-        /// will return immediately that any screen data is visible
+        ///     Refresh the current screen.  If timeout > 0, it will wait for
+        ///     this number of milliseconds.
+        ///     If waitForValidScreen is true, it will wait for a valid screen, otherwise it
+        ///     will return immediately that any screen data is visible
         /// </summary>
         /// <param name="waitForValidScreen"></param>
         /// <param name="timeoutMS">The time to wait in ms</param>
         /// <returns></returns>
         public bool Refresh(bool waitForValidScreen, int timeoutMS)
         {
-            long start = DateTime.Now.Ticks / (10 * 1000);
-            long end = start + timeoutMS;
+            var start = DateTime.Now.Ticks/(10*1000);
+            var end = start + timeoutMS;
 
             if (currentConnection == null)
             {
-                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
             }
 
-            if (sout != null && Debug == true)
+            if (Audit != null && Debug)
             {
-                sout.WriteLine("Refresh::Refresh(" + waitForValidScreen + ", " + timeoutMS + "). FastScreenMode=" + this.mConnectionConfiguration.FastScreenMode);
+                Audit.WriteLine("Refresh::Refresh(" + waitForValidScreen + ", " + timeoutMS + "). FastScreenMode=" +
+                                Config.FastScreenMode);
             }
 
             do
             {
                 if (waitForValidScreen)
                 {
-                    bool run = false;
-                    int timeout = 0;
+                    var run = false;
+                    var timeout = 0;
                     do
                     {
-                        timeout = (int)(end - (DateTime.Now.Ticks / 10000));
+                        timeout = (int) (end - DateTime.Now.Ticks/10000);
                         if (timeout > 0)
                         {
-                            if (sout != null && this.Debug)
+                            if (Audit != null && Debug)
                             {
-                                sout.WriteLine("Refresh::Acquire(" + timeout + " milliseconds). unsafe Count is currently " + semaphore.Count);
+                                Audit.WriteLine("Refresh::Acquire(" + timeout +
+                                                " milliseconds). unsafe Count is currently " + semaphore.Count);
                             }
 
                             run = semaphore.Acquire(Math.Min(timeout, 1000));
 
                             if (!IsConnected)
                             {
-                                throw new TNHostException("The TN3270 connection was lost", this.currentConnection.DisconnectReason, null);
+                                throw new TNHostException("The TN3270 connection was lost",
+                                    currentConnection.DisconnectReason, null);
                             }
 
                             if (run)
                             {
-                                if (sout != null && this.Debug)
+                                if (Audit != null && Debug)
                                 {
-                                    sout.WriteLine("Refresh::return true at line 279");
+                                    Audit.WriteLine("Refresh::return true at line 279");
                                 }
                                 return true;
                             }
-                            else
-                            {
-
-                            }
                         }
-
-                    }
-                    while (!run && timeout > 0);
-                    if (sout != null && this.Debug) sout.WriteLine("Refresh::Timeout or acquire failed. run= " + run + " timeout=" + timeout);
-
+                    } while (!run && timeout > 0);
+                    if (Audit != null && Debug)
+                        Audit.WriteLine("Refresh::Timeout or acquire failed. run= " + run + " timeout=" + timeout);
                 }
 
-                if (this.mConnectionConfiguration.FastScreenMode || this.KeyboardLocked == 0)
+                if (Config.FastScreenMode || KeyboardLocked == 0)
                 {
                     // Store screen in screen database and identify it
-                    this.DisposeOfCurrentScreenXML();
+                    DisposeOfCurrentScreenXML();
 
                     // Force a refresh
                     currentScreenXML = null;
-                    if (sout != null && this.Debug)
+                    if (Audit != null && Debug)
                     {
-                        sout.WriteLine("Refresh::Timeout, but since keyboard is not locked or fastmode=true, return true anyway");
+                        Audit.WriteLine(
+                            "Refresh::Timeout, but since keyboard is not locked or fastmode=true, return true anyway");
                     }
 
                     return true;
-
                 }
-                else
-                    System.Threading.Thread.Sleep(10);
+                Thread.Sleep(10);
+            } while (DateTime.Now.Ticks/10000 < end);
 
-            }
-            while (DateTime.Now.Ticks / 10000 < end);
-
-            if (sout != null)
+            if (Audit != null)
             {
-                sout.WriteLine("Refresh::Timed out (2) waiting for a valid screen. Timeout was " + timeoutMS);
+                Audit.WriteLine("Refresh::Timed out (2) waiting for a valid screen. Timeout was " + timeoutMS);
             }
 
-            if (Config.FastScreenMode == false && Config.ThrowExceptionOnLockedScreen && this.KeyboardLocked != 0)
+            if (Config.FastScreenMode == false && Config.ThrowExceptionOnLockedScreen && KeyboardLocked != 0)
             {
-                throw new ApplicationException("Timeout waiting for new screen with keyboard inhibit false - screen present with keyboard inhibit. Turn off the configuration option 'ThrowExceptionOnLockedScreen' to turn off this exception. Timeout was " + timeoutMS + " and keyboard inhibit is " + this.KeyboardLocked);
+                throw new ApplicationException(
+                    "Timeout waiting for new screen with keyboard inhibit false - screen present with keyboard inhibit. Turn off the configuration option 'ThrowExceptionOnLockedScreen' to turn off this exception. Timeout was " +
+                    timeoutMS + " and keyboard inhibit is " + KeyboardLocked);
             }
 
             if (Config.IdentificationEngineOn)
             {
                 throw new TNIdentificationException(mScreenName, GetScreenAsXML());
             }
-            else
-            {
-                return false;
-            }
-
+            return false;
         }
+
         /// <summary>
-        /// Dump fields to the current audit output
+        ///     Dump fields to the current audit output
         /// </summary>
         public void ShowFields()
         {
-            if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
+            if (currentConnection == null)
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
 
-            if (sout != null)
+            if (Audit != null)
             {
-                sout.WriteLine("-------------------dump screen data -----------------");
+                Audit.WriteLine("-------------------dump screen data -----------------");
                 currentConnection.ExecuteAction(false, "Fields");
-                sout.WriteLine("" + currentConnection.GetAllStringData(false));
-                this.CurrentScreenXML.Dump(sout);
-                sout.WriteLine("-------------------dump screen end -----------------");
+                Audit.WriteLine("" + currentConnection.GetAllStringData(false));
+                CurrentScreenXML.Dump(Audit);
+                Audit.WriteLine("-------------------dump screen end -----------------");
             }
             else
                 throw new ApplicationException("ShowFields requires an active 'Audit' connection on the emulator");
         }
+
         /// <summary>
-        /// Retrieves text at the specified location on the screen
+        ///     Retrieves text at the specified location on the screen
         /// </summary>
         /// <param name="x">Column</param>
         /// <param name="y">Row</param>
@@ -471,10 +465,11 @@ namespace StEn.Open3270.Engine
         /// <returns></returns>
         public string GetText(int x, int y, int length)
         {
-            return this.CurrentScreenXML.GetText(x, y, length);
+            return CurrentScreenXML.GetText(x, y, length);
         }
+
         /// <summary>
-        /// Sends a string starting at the indicated screen position
+        ///     Sends a string starting at the indicated screen position
         /// </summary>
         /// <param name="text">The text to send</param>
         /// <param name="x">Column</param>
@@ -482,20 +477,25 @@ namespace StEn.Open3270.Engine
         /// <returns>True for success</returns>
         public bool SetText(string text, int x, int y)
         {
-            if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
+            if (currentConnection == null)
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
 
-            this.SetCursor(x, y);
+            SetCursor(x, y);
 
             return SetText(text);
         }
+
         /// <summary>
-        /// Sents the specified string to the emulator at it's current position.
+        ///     Sents the specified string to the emulator at it's current position.
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
         public bool SetText(string text)
         {
-            if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
+            if (currentConnection == null)
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
 
             lock (this)
             {
@@ -504,21 +504,24 @@ namespace StEn.Open3270.Engine
             }
             return currentConnection.ExecuteAction(false, "String", text);
         }
+
         /// <summary>
-        /// Returns after new screen data has stopped flowing from the host for screenCheckInterval time.
+        ///     Returns after new screen data has stopped flowing from the host for screenCheckInterval time.
         /// </summary>
-        /// <param name="screenCheckInterval">The amount of time between screen data comparisons in milliseconds.  
-        /// It's probably impractical for this to be much less than 100 ms.</param>
+        /// <param name="screenCheckInterval">
+        ///     The amount of time between screen data comparisons in milliseconds.
+        ///     It's probably impractical for this to be much less than 100 ms.
+        /// </param>
         /// <param name="finalTimeout">The absolute longest time we should wait before the method should time out</param>
         /// <returns>True if data ceased, and false if the operation timed out. </returns>
         public bool WaitForHostSettle(int screenCheckInterval, int finalTimeout)
         {
-            bool success = true;
+            var success = true;
             //Accumulator for total poll time.  This is less accurate than using an interrupt or DateTime deltas, but it's light weight.
-            int elapsed = 0;
+            var elapsed = 0;
 
             //This is low tech and slow, but simple to implement right now.
-            while (!this.Refresh(true, screenCheckInterval))
+            while (!Refresh(true, screenCheckInterval))
             {
                 if (elapsed > finalTimeout)
                 {
@@ -530,23 +533,29 @@ namespace StEn.Open3270.Engine
 
             return success;
         }
+
         /// <summary>
-        /// Returns the last asynchronous error that occured internally
+        ///     Returns the last asynchronous error that occured internally
         /// </summary>
         /// <returns></returns>
         public string GetLastError()
         {
-            if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
+            if (currentConnection == null)
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
             return currentConnection.LastException;
         }
+
         /// <summary>
-        /// Set field value.
+        ///     Set field value.
         /// </summary>
         /// <param name="index"></param>
         /// <param name="text"></param>
         public void SetField(int index, string text)
         {
-            if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
+            if (currentConnection == null)
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
             if (index == -1001)
             {
                 switch (text)
@@ -562,102 +571,109 @@ namespace StEn.Open3270.Engine
             DisposeOfCurrentScreenXML();
             currentScreenXML = null;
         }
+
         public void SetField(FieldInfo field, string text)
         {
             //this.currentConnection.ExecuteAction()
             throw new NotImplementedException();
         }
+
         /// <summary>
-        /// Set the cursor position on the screen
+        ///     Set the cursor position on the screen
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         public void SetCursor(int x, int y)
         {
-            if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
+            if (currentConnection == null)
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
             //currentConnection.ExecuteAction("MoveCursor", x,y);
-            this.currentConnection.MoveCursor(CursorOp.Exact, x, y);
+            currentConnection.MoveCursor(CursorOp.Exact, x, y);
         }
+
         /// <summary>
-        /// Connects to the mainframe.
+        ///     Connects to the mainframe.
         /// </summary>
         public void Connect()
         {
-            Connect(this.mConnectionConfiguration.HostName,
-                this.mConnectionConfiguration.HostPort,
-                this.mConnectionConfiguration.HostLU);
+            Connect(Config.HostName,
+                Config.HostPort,
+                Config.HostLU);
         }
+
         /// <summary>
-        /// Connects to host using a local IP endpoint
-        /// <remarks>
-        /// Added by CFCJR on Feb/29/2008
-        /// if a source IP is given then use it for the local IP
-        /// </remarks>
+        ///     Connects to host using a local IP endpoint
+        ///     <remarks>
+        ///         Added by CFCJR on Feb/29/2008
+        ///         if a source IP is given then use it for the local IP
+        ///     </remarks>
         /// </summary>
         /// <param name="localIP"></param>
         /// <param name="host"></param>
         /// <param name="port"></param>
         public void Connect(string localIP, string host, int port)
         {
-            _localIP = localIP;
+            LocalIP = localIP;
             Connect(host, port, string.Empty);
         }
+
         /// <summary>
-        /// Connect to TN3270 server using the connection details specified.
+        ///     Connect to TN3270 server using the connection details specified.
         /// </summary>
         /// <remarks>
-        /// You should set the Audit property to an instance of an object that implements
-        /// the IAudit interface if you want to see any debugging information from this function
-        /// call.
+        ///     You should set the Audit property to an instance of an object that implements
+        ///     the IAudit interface if you want to see any debugging information from this function
+        ///     call.
         /// </remarks>
         /// <param name="host">Host name or IP address. Mandatory</param>
         /// <param name="port">TCP/IP port to connect to (default TN3270 port is 23)</param>
         /// <param name="lu">TN3270E LU to connect to. Specify null for no LU.</param>
         public void Connect(string host, int port, string lu)
         {
-            if (this.currentConnection != null)
+            if (currentConnection != null)
             {
-                this.currentConnection.Disconnect();
-                this.currentConnection.CursorLocationChanged -= currentConnection_CursorLocationChanged;
+                currentConnection.Disconnect();
+                currentConnection.CursorLocationChanged -= currentConnection_CursorLocationChanged;
             }
 
             try
             {
-
                 semaphore.Reset();
 
-                this.currentConnection = null;
-                this.currentConnection = new TN3270API();
-                this.currentConnection.Debug = debug;
-                this.currentConnection.RunScriptRequested += new RunScriptDelegate(currentConnection_RunScriptEvent);
-                this.currentConnection.CursorLocationChanged += currentConnection_CursorLocationChanged;
-                this.currentConnection.Disconnected += apiOnDisconnectDelegate;
+                currentConnection = null;
+                currentConnection = new TN3270API();
+                currentConnection.Debug = Debug;
+                currentConnection.RunScriptRequested += currentConnection_RunScriptEvent;
+                currentConnection.CursorLocationChanged += currentConnection_CursorLocationChanged;
+                currentConnection.Disconnected += apiOnDisconnectDelegate;
 
-                this.apiOnDisconnectDelegate = new OnDisconnectDelegate(currentConnection_OnDisconnect);
+                apiOnDisconnectDelegate = currentConnection_OnDisconnect;
 
                 //
                 // Debug out our current state
                 //
-                if (sout != null)
+                if (Audit != null)
                 {
-                    sout.WriteLine("Open3270 emulator version " + Assembly.GetAssembly(typeof(TNEmulator)).GetName().Version);
-                    sout.WriteLine("(c) 2004-2006 Mike Warriner (mikewarriner@gmail.com). All rights reserved");
-                    sout.WriteLine("");
-                    sout.WriteLine("This is free software; you can redistribute it and/or modify it");
-                    sout.WriteLine("under the terms of the GNU Lesser General Public License as");
-                    sout.WriteLine("published by the Free Software Foundation; either version 2.1 of");
-                    sout.WriteLine("the License, or (at your option) any later version.");
-                    sout.WriteLine("");
-                    sout.WriteLine("This software is distributed in the hope that it will be useful,");
-                    sout.WriteLine("but WITHOUT ANY WARRANTY; without even the implied warranty of");
-                    sout.WriteLine("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU");
-                    sout.WriteLine("Lesser General Public License for more details.");
-                    sout.WriteLine("");
-                    sout.WriteLine("You should have received a copy of the GNU Lesser General Public");
-                    sout.WriteLine("License along with this software; if not, write to the Free");
-                    sout.WriteLine("Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA");
-                    sout.WriteLine("02110-1301 USA, or see the FSF site: http://www.fsf.org.");
-                    sout.WriteLine("");
+                    Audit.WriteLine("Open3270 emulator version " +
+                                    Assembly.GetAssembly(typeof(TNEmulator)).GetName().Version);
+                    Audit.WriteLine("(c) 2004-2006 Mike Warriner (mikewarriner@gmail.com). All rights reserved");
+                    Audit.WriteLine("");
+                    Audit.WriteLine("This is free software; you can redistribute it and/or modify it");
+                    Audit.WriteLine("under the terms of the GNU Lesser General Public License as");
+                    Audit.WriteLine("published by the Free Software Foundation; either version 2.1 of");
+                    Audit.WriteLine("the License, or (at your option) any later version.");
+                    Audit.WriteLine("");
+                    Audit.WriteLine("This software is distributed in the hope that it will be useful,");
+                    Audit.WriteLine("but WITHOUT ANY WARRANTY; without even the implied warranty of");
+                    Audit.WriteLine("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU");
+                    Audit.WriteLine("Lesser General Public License for more details.");
+                    Audit.WriteLine("");
+                    Audit.WriteLine("You should have received a copy of the GNU Lesser General Public");
+                    Audit.WriteLine("License along with this software; if not, write to the Free");
+                    Audit.WriteLine("Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA");
+                    Audit.WriteLine("02110-1301 USA, or see the FSF site: http://www.fsf.org.");
+                    Audit.WriteLine("");
 
                     if (firstTime)
                     {
@@ -665,28 +681,25 @@ namespace StEn.Open3270.Engine
                     }
                     if (Debug)
                     {
-                        Config.Dump(sout);
-                        sout.WriteLine("Connect to host \"" + host + "\"");
-                        sout.WriteLine("           port \"" + port + "\"");
-                        sout.WriteLine("           LU   \"" + lu + "\"");
-                        sout.WriteLine("     Local IP   \"" + _localIP + "\"");
+                        Config.Dump(Audit);
+                        Audit.WriteLine("Connect to host \"" + host + "\"");
+                        Audit.WriteLine("           port \"" + port + "\"");
+                        Audit.WriteLine("           LU   \"" + lu + "\"");
+                        Audit.WriteLine("     Local IP   \"" + LocalIP + "\"");
                     }
                 }
-                else
-                {
-                }
 
-                currentConnection.UseSSL = this.mUseSSL;
+                currentConnection.UseSSL = UseSSL;
 
 
                 /// Modified CFCJR Feb/29/2008 to support local IP endpoint
-                if (!string.IsNullOrEmpty(_localIP))
+                if (!string.IsNullOrEmpty(LocalIP))
                 {
-                    currentConnection.Connect(this.sout, _localIP, host, port, this.mConnectionConfiguration);
+                    currentConnection.Connect(Audit, LocalIP, host, port, Config);
                 }
                 else
                 {
-                    currentConnection.Connect(this.sout, host, port, lu, this.mConnectionConfiguration);
+                    currentConnection.Connect(Audit, host, port, lu, Config);
                 }
 
                 currentConnection.WaitForConnect(-1);
@@ -704,20 +717,19 @@ namespace StEn.Open3270.Engine
             // These don't close the connection
             try
             {
-                this.mScreenName = "Start";
+                mScreenName = "Start";
                 Refresh(true, 10000);
-                if (sout != null && Debug == true) sout.WriteLine("Debug::Connected");
+                if (Audit != null && Debug) Audit.WriteLine("Debug::Connected");
                 //mScreenProcessor.Update_Screen(currentScreenXML, true);
-
             }
             catch (Exception)
             {
                 throw;
             }
-            return;
         }
+
         /// <summary>
-        /// Closes the current connection to the mainframe.
+        ///     Closes the current connection to the mainframe.
         /// </summary>
         public void Close()
         {
@@ -727,8 +739,9 @@ namespace StEn.Open3270.Engine
                 currentConnection = null;
             }
         }
+
         /// <summary>
-        /// Waits for the specified text to appear at the specified location.
+        ///     Waits for the specified text to appear at the specified location.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -737,22 +750,24 @@ namespace StEn.Open3270.Engine
         /// <returns></returns>
         public bool WaitForText(int x, int y, string text, int timeoutMS)
         {
-            if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
-            long start = DateTime.Now.Ticks;
+            if (currentConnection == null)
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
+            var start = DateTime.Now.Ticks;
             //bool ok = false;
             if (Config.AlwaysRefreshWhenWaiting)
             {
                 lock (this)
                 {
                     DisposeOfCurrentScreenXML();
-                    this.currentScreenXML = null;
+                    currentScreenXML = null;
                 }
             }
             do
             {
                 if (CurrentScreenXML != null)
                 {
-                    string screenText = CurrentScreenXML.GetText(x, y, text.Length);
+                    var screenText = CurrentScreenXML.GetText(x, y, text.Length);
                     if (screenText == text)
                     {
                         if (Audit != null)
@@ -768,36 +783,37 @@ namespace StEn.Open3270.Engine
                     return false;
                 }
                 //
-                System.Threading.Thread.Sleep(100);
+                Thread.Sleep(100);
                 if (Config.AlwaysRefreshWhenWaiting)
                 {
                     lock (this)
                     {
                         DisposeOfCurrentScreenXML();
-                        this.currentScreenXML = null;
+                        currentScreenXML = null;
                     }
                 }
                 Refresh(true, 1000);
-            }
-            while (((DateTime.Now.Ticks - start) / 10000) < timeoutMS);
+            } while ((DateTime.Now.Ticks - start)/10000 < timeoutMS);
             //
             if (Audit != null)
                 Audit.WriteLine("WaitForText('" + text + "') Timed out");
             return false;
         }
+
         /// <summary>
-        /// Dump current screen to the current audit output
+        ///     Dump current screen to the current audit output
         /// </summary>
         public void Dump()
         {
             lock (this)
             {
-                if (sout != null)
-                    CurrentScreenXML.Dump(sout);
+                if (Audit != null)
+                    CurrentScreenXML.Dump(Audit);
             }
         }
+
         /// <summary>
-        /// Refreshes the connection to the mainframe.
+        ///     Refreshes the connection to the mainframe.
         /// </summary>
         public void Refresh()
         {
@@ -807,29 +823,32 @@ namespace StEn.Open3270.Engine
                 currentScreenXML = null;
             }
         }
+
         #endregion
 
         #region Protected / Internal Methods
+
         protected void DisposeOfCurrentScreenXML()
         {
             if (currentScreenXML != null)
             {
-                IDisposable disposeXML = currentScreenXML as IDisposable;
+                var disposeXML = currentScreenXML as IDisposable;
                 if (disposeXML != null)
                     disposeXML.Dispose();
                 currentScreenXML = null;
             }
         }
+
         protected virtual void Dispose(bool disposing)
         {
             lock (this)
             {
                 if (IsDisposed)
                     return;
-                isDisposed = true;
+                IsDisposed = true;
 
-                if (sout != null)
-                    sout.WriteLine("TNEmulator.Dispose(" + IsDisposed.ToString() + ")");
+                if (Audit != null)
+                    Audit.WriteLine("TNEmulator.Dispose(" + IsDisposed + ")");
 
                 if (disposing)
                 {
@@ -838,12 +857,12 @@ namespace StEn.Open3270.Engine
 
                     if (currentConnection != null)
                     {
-                        if (sout != null)
-                            sout.WriteLine("TNEmulator.Dispose() Disposing of currentConnection");
+                        if (Audit != null)
+                            Audit.WriteLine("TNEmulator.Dispose() Disposing of currentConnection");
                         try
                         {
                             currentConnection.Disconnect();
-                            this.currentConnection.CursorLocationChanged -= currentConnection_CursorLocationChanged;
+                            currentConnection.CursorLocationChanged -= currentConnection_CursorLocationChanged;
 
                             if (apiOnDisconnectDelegate != null)
                                 currentConnection.Disconnected -= apiOnDisconnectDelegate;
@@ -852,26 +871,26 @@ namespace StEn.Open3270.Engine
                         }
                         catch
                         {
-                            if (sout != null)
-                                sout.WriteLine("TNEmulator.Dispose() Exception during currentConnection.Dispose");
+                            if (Audit != null)
+                                Audit.WriteLine("TNEmulator.Dispose() Exception during currentConnection.Dispose");
                         }
                         currentConnection = null;
                     }
 
                     Disconnected = null;
 
-                    if (sout != null)
-                        sout.WriteLine("TNEmulator.Dispose() Disposing of currentScreenXML");
+                    if (Audit != null)
+                        Audit.WriteLine("TNEmulator.Dispose() Disposing of currentScreenXML");
 
                     DisposeOfCurrentScreenXML();
 
-                    if (objectState != null)
+                    if (ObjectState != null)
                     {
-                        objectState = null;
+                        ObjectState = null;
                     }
-                    if (mConnectionConfiguration != null)
+                    if (Config != null)
                     {
-                        mConnectionConfiguration = null;
+                        Config = null;
                     }
                     if (mScreenName != null)
                     {
@@ -881,52 +900,58 @@ namespace StEn.Open3270.Engine
 
                 //------------------------------
                 // release unmanaged resources
-
             }
         }
+
         protected virtual void OnCursorLocationChanged(EventArgs args)
         {
-            if (this.CursorLocationChanged != null)
+            if (CursorLocationChanged != null)
             {
-                this.CursorLocationChanged(this, args);
+                CursorLocationChanged(this, args);
             }
         }
+
         /// <summary>
-        /// Get the current screen as an XMLScreen data structure
+        ///     Get the current screen as an XMLScreen data structure
         /// </summary>
         /// <returns></returns>
         internal IXMLScreen GetScreenAsXML()
         {
             DisposeOfCurrentScreenXML();
 
-            if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
+            if (currentConnection == null)
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
             if (currentConnection.ExecuteAction(false, "DumpXML"))
             {
                 //
                 return XMLScreen.LoadFromString(currentConnection.GetAllStringData(false));
             }
-            else
-                return null;
+            return null;
         }
+
         #endregion
 
         #region Private Methods
-        void currentConnection_CursorLocationChanged(object sender, EventArgs e)
-		{
-			this.OnCursorLocationChanged(e);
-		}
+
+        private void currentConnection_CursorLocationChanged(object sender, EventArgs e)
+        {
+            OnCursorLocationChanged(e);
+        }
+
         private void currentConnection_RunScriptEvent(string where)
         {
             lock (this)
             {
                 DisposeOfCurrentScreenXML();
 
-                if (sout != null && Debug) sout.WriteLine("mre.Release(1) from location " + where);
+                if (Audit != null && Debug) Audit.WriteLine("mre.Release(1) from location " + where);
                 semaphore.Release(1);
             }
         }
+
         /// <summary>
-        /// Wait for some text to appear at the specified location
+        ///     Wait for some text to appear at the specified location
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -935,118 +960,123 @@ namespace StEn.Open3270.Engine
         /// <returns></returns>
         private void currentConnection_OnDisconnect(TNEmulator where, string Reason)
         {
-            if (this.Disconnected != null)
-                this.Disconnected(this, Reason);
+            if (Disconnected != null)
+                Disconnected(this, Reason);
         }
+
         #endregion
 
         #region Deprecated Methods
-		[Obsolete("This method has been deprecated.  Please use SendKey instead. This method is only included for backwards compatibiity and might not exist in future releases.")]
-		public bool SendKeyFromText(bool waitForScreenToUpdate, string text)
-		{
-			return SendKeyFromText(waitForScreenToUpdate, text, Config.DefaultTimeout);
-		}
-		[Obsolete("This method has been deprecated.  Please use SendKey instead.  This method is only included for backwards compatibiity and might not exist in future releases.")]
-		public bool SendKeyFromText(bool waitForScreenToUpdate, string text, int timeout)
-		{
 
-			bool submit = false;
-			bool success = false;
+        [Obsolete(
+            "This method has been deprecated.  Please use SendKey instead. This method is only included for backwards compatibiity and might not exist in future releases."
+            )]
+        public bool SendKeyFromText(bool waitForScreenToUpdate, string text)
+        {
+            return SendKeyFromText(waitForScreenToUpdate, text, Config.DefaultTimeout);
+        }
 
-			if (sout != null && Debug == true)
-			{
-				sout.WriteLine("SendKeyFromText(" + waitForScreenToUpdate + ", \"" + text + "\", " + timeout + ")");
-			}
+        [Obsolete(
+            "This method has been deprecated.  Please use SendKey instead.  This method is only included for backwards compatibiity and might not exist in future releases."
+            )]
+        public bool SendKeyFromText(bool waitForScreenToUpdate, string text, int timeout)
+        {
+            var submit = false;
+            var success = false;
 
-			if (currentConnection == null)
-			{
-				throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
-			}
+            if (Audit != null && Debug)
+            {
+                Audit.WriteLine("SendKeyFromText(" + waitForScreenToUpdate + ", \"" + text + "\", " + timeout + ")");
+            }
 
-			if (text.Length < 2)
-			{
-				// No keys are less than 2 characters.
-				return false;
-			}
+            if (currentConnection == null)
+            {
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
+            }
 
-
-			if (this.Config.SubmitAllKeyboardCommands)
-			{
-				submit = true;
-			}
-			else
-			{
-				if (text.Substring(0, 2) == "PF")
-				{
-					submit = this.currentConnection.KeyboardCommandCausesSubmit("PF");
-				}
-				else if (text.Substring(0, 2) == "PA")
-				{
-					submit = this.currentConnection.KeyboardCommandCausesSubmit("PA");
-				}
-				else
-				{
-					submit = this.currentConnection.KeyboardCommandCausesSubmit(text);
-				}
-			}
+            if (text.Length < 2)
+            {
+                // No keys are less than 2 characters.
+                return false;
+            }
 
 
-			if (submit)
-			{
-				lock (this)
-				{
-					this.DisposeOfCurrentScreenXML();
-					currentScreenXML = null;
+            if (Config.SubmitAllKeyboardCommands)
+            {
+                submit = true;
+            }
+            else
+            {
+                if (text.Substring(0, 2) == "PF")
+                {
+                    submit = currentConnection.KeyboardCommandCausesSubmit("PF");
+                }
+                else if (text.Substring(0, 2) == "PA")
+                {
+                    submit = currentConnection.KeyboardCommandCausesSubmit("PA");
+                }
+                else
+                {
+                    submit = currentConnection.KeyboardCommandCausesSubmit(text);
+                }
+            }
 
-					if (sout != null && Debug) sout.WriteLine("mre.Reset. Count was " + semaphore.Count);
-					{
-						// Clear to initial count (0)
-						semaphore.Reset();
-					}
-				}
 
-			}
+            if (submit)
+            {
+                lock (this)
+                {
+                    DisposeOfCurrentScreenXML();
+                    currentScreenXML = null;
+
+                    if (Audit != null && Debug) Audit.WriteLine("mre.Reset. Count was " + semaphore.Count);
+                    {
+                        // Clear to initial count (0)
+                        semaphore.Reset();
+                    }
+                }
+            }
 
 
-			if (text.Substring(0, 2) == "PF")
-			{
-				success = this.currentConnection.ExecuteAction(submit, "PF", System.Convert.ToInt32(text.Substring(2, 2)));
-			}
-			else if (text.Substring(0, 2) == "PA")
-			{
-				success = this.currentConnection.ExecuteAction(submit, "PA", System.Convert.ToInt32(text.Substring(2, 2)));
-			}
-			else
-			{
-				success = this.currentConnection.ExecuteAction(submit, text);
-			}
+            if (text.Substring(0, 2) == "PF")
+            {
+                success = currentConnection.ExecuteAction(submit, "PF", Convert.ToInt32(text.Substring(2, 2)));
+            }
+            else if (text.Substring(0, 2) == "PA")
+            {
+                success = currentConnection.ExecuteAction(submit, "PA", Convert.ToInt32(text.Substring(2, 2)));
+            }
+            else
+            {
+                success = currentConnection.ExecuteAction(submit, text);
+            }
 
-			if (sout != null && Debug)
-			{
-				sout.WriteLine("SendKeyFromText - submit = " + submit + " ok=" + success);
-			}
+            if (Audit != null && Debug)
+            {
+                Audit.WriteLine("SendKeyFromText - submit = " + submit + " ok=" + success);
+            }
 
-			if (submit && success)
-			{
-				// Wait for a valid screen to appear
-				if (waitForScreenToUpdate)
-				{
-					return Refresh(true, timeout);
-				}
-				else
-				{
-					return true;
-				}
-			}
-			else
-			{
-				return success;
-			}
-		}
-        [Obsolete("This method has been deprecated.  Please use SetText instead.  This method is only included for backwards compatibiity and might not exist in future releases.")]
+            if (submit && success)
+            {
+                // Wait for a valid screen to appear
+                if (waitForScreenToUpdate)
+                {
+                    return Refresh(true, timeout);
+                }
+                return true;
+            }
+            return success;
+        }
+
+        [Obsolete(
+            "This method has been deprecated.  Please use SetText instead.  This method is only included for backwards compatibiity and might not exist in future releases."
+            )]
         public bool SendText(string text)
         {
-            if (currentConnection == null) throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection", null);
+            if (currentConnection == null)
+                throw new TNHostException("TNEmulator is not connected", "There is no currently open TN3270 connection",
+                    null);
             lock (this)
             {
                 DisposeOfCurrentScreenXML();
@@ -1054,13 +1084,15 @@ namespace StEn.Open3270.Engine
             }
             return currentConnection.ExecuteAction(false, "String", text);
         }
-        [Obsolete("This method has been deprecated.  Please use SetText instead.  This method is only included for backwards compatibiity and might not exist in future releases.")]
+
+        [Obsolete(
+            "This method has been deprecated.  Please use SetText instead.  This method is only included for backwards compatibiity and might not exist in future releases."
+            )]
         public bool PutText(string text, int x, int y)
         {
             return SetText(text, x, y);
         }
-        #endregion
-	}
 
-	public delegate void OnDisconnectDelegate(TNEmulator where, string Reason);
+        #endregion
+    }
 }

@@ -125,9 +125,6 @@
     <Reference Include="System">
       <Name>System</Name>
     </Reference>
-    <Reference Include="System.Data">
-      <Name>System.Data</Name>
-    </Reference>
     <Reference Include="System.Xml">
       <Name>System.XML</Name>
     </Reference>
@@ -136,15 +133,29 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CommFramework\AuditType.cs" />
+    <Compile Include="CommFramework\ClientDataNotify.cs" />
+    <Compile Include="CommFramework\ClientSocketNotify.cs" />
+    <Compile Include="CommFramework\HtmlMessage.cs" />
+    <Compile Include="CommFramework\IAuditable.cs" />
+    <Compile Include="CommFramework\MessageHeader.cs" />
+    <Compile Include="CommFramework\OnConnectionDelegate.cs" />
+    <Compile Include="CommFramework\OnConnectionDelegateRAW.cs" />
+    <Compile Include="CommFramework\ServerSocketType.cs" />
     <Compile Include="Engine\ConnectionConfig.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Engine\OnDisconnectDelegate.cs" />
     <Compile Include="Engine\TNEmulator.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Engine\TnXMLScreen.cs">
+    <Compile Include="Engine\XMLScreen.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Engine\XMLScreenAttributes.cs" />
+    <Compile Include="Engine\XMLScreenField.cs" />
+    <Compile Include="Engine\XMLScreenLocation.cs" />
+    <Compile Include="Engine\XMLUnformattedScreen.cs" />
     <Compile Include="Exceptions\TNHostException.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -163,22 +174,48 @@
     <Compile Include="Interfaces\StringAudit.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LogParser\CS.cs" />
     <Compile Include="LogParser\TN3270ClientParser.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LogParser\TN3270HostParser.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TN3270E\Composing.cs" />
+    <Compile Include="TN3270E\ConnectionState.cs" />
     <Compile Include="TN3270E\Constants.cs" />
-    <Compile Include="TN3270E\Delegates.cs" />
-    <Compile Include="TN3270E\EventArgs.cs" />
+    <Compile Include="TN3270E\ControllerState.cs" />
+    <Compile Include="TN3270E\CursorOp.cs" />
+    <Compile Include="TN3270E\DataType3270.cs" />
+    <Compile Include="TN3270E\TelnetDataDelegate.cs" />
+    <Compile Include="TN3270E\EIAction.cs" />
+    <Compile Include="TN3270E\EIState.cs" />
+    <Compile Include="TN3270E\Connected3270EventArgs.cs" />
+    <Compile Include="TN3270E\KeyboardOp.cs" />
+    <Compile Include="TN3270E\KeyType.cs" />
+    <Compile Include="TN3270E\PDS.cs" />
+    <Compile Include="TN3270E\PreviousEnum.cs" />
+    <Compile Include="TN3270E\PrimaryConnectionChangedArgs.cs" />
+    <Compile Include="TN3270E\RunScriptDelegate.cs" />
+    <Compile Include="TN3270E\SChangeDelegate.cs" />
+    <Compile Include="TN3270E\TelnetState.cs" />
     <Compile Include="TN3270E\TN3270API.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="TN3270E\Enums.cs" />
+    <Compile Include="TN3270E\SmsState.cs" />
+    <Compile Include="TN3270E\TN3270ESubmode.cs" />
+    <Compile Include="TN3270E\TN3270State.cs" />
+    <Compile Include="TN3270E\TNEvent.cs" />
+    <Compile Include="TN3270E\TnKey.cs" />
+    <Compile Include="TN3270E\X3270\ActionDelegate.cs" />
+    <Compile Include="TN3270E\X3270\AnsiDelegate.cs" />
+    <Compile Include="TN3270E\X3270\AnsiState.cs" />
+    <Compile Include="TN3270E\X3270\Error.cs" />
+    <Compile Include="TN3270E\X3270\EventNotification.cs" />
     <Compile Include="TN3270E\X3270\Events.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TN3270E\X3270\FieldAttributes.cs" />
     <Compile Include="TN3270E\X3270\NetBuffer.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -200,7 +237,7 @@
     <Compile Include="TN3270E\X3270\CharacterGenerator.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="TN3270E\X3270\ControllerConstants.cs" />
+    <Compile Include="TN3270E\X3270\ControllerConstant.cs" />
     <Compile Include="TN3270E\X3270\Controller.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -221,15 +258,16 @@
     <Compile Include="TN3270E\X3270\See.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="TN3270E\X3270\SF.cs">
+    <Compile Include="TN3270E\X3270\StructuredField.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TN3270E\X3270\Tables.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="TN3270E\X3270\Tn3270eHeader.cs">
+    <Compile Include="TN3270E\X3270\TnHeader.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TN3270E\X3270\TraceType.cs" />
     <Compile Include="TN3270E\X3270\Util.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -264,7 +302,7 @@
     <Compile Include="CommFramework\Message.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CommFramework\Semaphore.cs">
+    <Compile Include="CommFramework\MySemaphore.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CommFramework\ServerSocket.cs">

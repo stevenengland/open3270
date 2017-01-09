@@ -1,4 +1,5 @@
 #region License
+
 /* 
  *
  * Open3270 - A C# implementation of the TN3270/TN3270E protocol
@@ -20,24 +21,26 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 #endregion
 
 namespace StEn.Open3270.Interfaces
 {
-	/// <summary>
-	/// Summary description for IAudit.
-	/// </summary>
-	public interface IAudit
-	{
-		/// <summary>
-		/// Write text to the audit file, no CR/LF
-		/// </summary>
-		/// <param name="text"></param>
-		void Write(string text);
-		/// <summary>
-		/// Write text to the audit file, CR/LF
-		/// </summary>
-		/// <param name="text"></param>
-		void WriteLine(string text);
-	}
+    /// <summary>
+    ///     Summary description for IAudit.
+    /// </summary>
+    public interface IAudit
+    {
+        /// <summary>
+        ///     Write text to the audit file, no CR/LF
+        /// </summary>
+        /// <param name="text"></param>
+        void Write(string text);
+
+        /// <summary>
+        ///     Write text to the audit file, CR/LF
+        /// </summary>
+        /// <param name="text"></param>
+        void WriteLine(string text);
+    }
 }

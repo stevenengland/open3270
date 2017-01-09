@@ -1,4 +1,5 @@
 #region License
+
 /* 
  *
  * Open3270 - A C# implementation of the TN3270/TN3270E protocol
@@ -20,93 +21,79 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 #endregion
 
 using System;
 using System.IO;
 using System.Security.Permissions;
-using System.Text;
 
 namespace StEn.Open3270.CommFramework
 {
-	public interface IAuditable
-	{
-		void DumpTo(StringBuilder message, bool admin);
-	}
-	public enum AuditType
-	{
-		Exception
-	}
-	/// <summary>
-	/// Summary description for Audit.
-	/// </summary>
-	internal class Audit
-	{
-		static string _auditFile;
-		static bool   _auditOn = false;
-		private static DateTime LoadTime = DateTime.Now;
-		static Audit()
-		{
-			_auditOn = false;
-			_auditFile = null;
-		}
-		static public bool AuditOn 
-		{
-			get { return _auditOn; }
-			set { _auditOn = value; }
-		}
-		static public string AuditFile
-		{
-			get { return _auditFile; }
-			set { _auditFile = value; }
-		}
-		public static void WriteLine(string text)
-		{
-			if (_auditOn)
-			{
-				if (Audit._auditFile != null)
-				{
-					lock (Audit._auditFile)
-					{
-						try
-						{
-							Console.WriteLine(text);
-							//
-							// Demand file permission so that we work within the Internet Explorer sandbox
-							//
-							FileIOPermission permission = new FileIOPermission( PermissionState.Unrestricted );
-							permission.AddPathList(FileIOPermissionAccess.Append, AuditFile);
-							permission.Demand(); 
-							//
-							StreamWriter sw = File.AppendText(_auditFile);
-							try
-							{
-								string date = DateTime.Now.ToShortDateString()+"-"+DateTime.Now.ToShortTimeString()+"::";
-								sw.WriteLine(date+text);
-							}
-							finally
-							{
-								sw.Close();
-							}
-							permission.Deny();
-						}
-						catch (Exception ee)
-						{
-							Console.WriteLine("EXCEPTION ON AUDIT "+ee);
+    /// <summary>
+    ///     Summary description for Audit.
+    /// </summary>
+    internal class Audit
+    {
+        private static DateTime LoadTime = DateTime.Now;
 
-						}
-					}
-				}
-				else
-				{
-					Console.WriteLine(text);
-				}
-			}
-		}
+        static Audit()
+        {
+            AuditOn = false;
+            AuditFile = null;
+        }
+
+        public static bool AuditOn { get; set; }
+
+        public static string AuditFile { get; set; }
+
+        public static void WriteLine(string text)
+        {
+            if (AuditOn)
+            {
+                if (AuditFile != null)
+                {
+                    lock (AuditFile)
+                    {
+                        try
+                        {
+                            Console.WriteLine(text);
+                            //
+                            // Demand file permission so that we work within the Internet Explorer sandbox
+                            //
+                            var permission = new FileIOPermission(PermissionState.Unrestricted);
+                            permission.AddPathList(FileIOPermissionAccess.Append, AuditFile);
+                            permission.Demand();
+                            //
+                            var sw = File.AppendText(AuditFile);
+                            try
+                            {
+                                var date = DateTime.Now.ToShortDateString() + "-" + DateTime.Now.ToShortTimeString() +
+                                           "::";
+                                sw.WriteLine(date + text);
+                            }
+                            finally
+                            {
+                                sw.Close();
+                            }
+                            permission.Deny();
+                        }
+                        catch (Exception ee)
+                        {
+                            Console.WriteLine("EXCEPTION ON AUDIT " + ee);
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine(text);
+                }
+            }
+        }
 
         private static void WriteAuditInternal(AuditType Type, string Text)
-		{
-			WriteLine(Text);
-		}
-	}
+        {
+            WriteLine(Text);
+        }
+    }
 }

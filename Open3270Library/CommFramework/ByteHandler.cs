@@ -1,4 +1,5 @@
 #region License
+
 /* 
  *
  * Open3270 - A C# implementation of the TN3270/TN3270E protocol
@@ -20,28 +21,30 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 #endregion
 
 namespace StEn.Open3270.CommFramework
 {
-	internal class ByteHandler
-	{
-		static public int ToBytes(byte[] buffer, int offset, int data)
-		{
-			buffer[offset++] = (byte)(data & 0xff);
-			buffer[offset++] = (byte)((data & 0xff00) / 0x100);
-			buffer[offset++] = (byte)((data & 0xff0000) / 0x10000);
-			buffer[offset++] = (byte)((data & 0xff000000) / 0x1000000);
-			return offset;
-		}
-		static public int FromBytes(byte[] buffer, int offset, out int data)
-		{
-			data = 0;
-			data = (int)(buffer[offset++]);
-			data += (int)(buffer[offset++] * 0x100);
-			data += (int)(buffer[offset++] * 0x10000);
-			data += (int)(buffer[offset++] * 0x1000000);
-			return offset;
-		}
-	}
+    internal class ByteHandler
+    {
+        public static int ToBytes(byte[] buffer, int offset, int data)
+        {
+            buffer[offset++] = (byte) (data & 0xff);
+            buffer[offset++] = (byte) ((data & 0xff00)/0x100);
+            buffer[offset++] = (byte) ((data & 0xff0000)/0x10000);
+            buffer[offset++] = (byte) ((data & 0xff000000)/0x1000000);
+            return offset;
+        }
+
+        public static int FromBytes(byte[] buffer, int offset, out int data)
+        {
+            data = 0;
+            data = buffer[offset++];
+            data += buffer[offset++]*0x100;
+            data += buffer[offset++]*0x10000;
+            data += buffer[offset++]*0x1000000;
+            return offset;
+        }
+    }
 }

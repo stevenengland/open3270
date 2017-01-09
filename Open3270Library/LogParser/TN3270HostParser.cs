@@ -1,4 +1,5 @@
 #region License
+
 /* 
  *
  * Open3270 - A C# implementation of the TN3270/TN3270E protocol
@@ -20,6 +21,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 #endregion
 
 using System;
@@ -30,73 +32,75 @@ using StEn.Open3270.TN3270E.X3270;
 
 namespace StEn.Open3270.LogParser
 {
-	/// <summary>
-	/// Summary description for LogParser.
-	/// </summary>
-	public class TN3270HostParser : IAudit
-	{
-		Telnet telnet;
-		/// <summary>
-		/// 
-		/// </summary>
-		public TN3270HostParser()
-		{
-			ConnectionConfig config = new ConnectionConfig();
-			config.HostName = "DUMMY_PARSER";
-			TN3270API api = new TN3270API();
- 
-			telnet = new Telnet(api, this, config);
-			telnet.Trace.optionTraceAnsi = true;
-			telnet.Trace.optionTraceDS = true;
-			telnet.Trace.optionTraceDSN = true;
-			telnet.Trace.optionTraceEvent = true;
-			telnet.Trace.optionTraceNetworkData = true;
-			telnet.telnetDataEventOccurred += new TelnetDataDelegate(telnet_telnetDataEvent);
+    /// <summary>
+    ///     Summary description for LogParser.
+    /// </summary>
+    public class TN3270HostParser : IAudit
+    {
+        private readonly Telnet telnet;
 
-			telnet.Connect(null,null,0);
-		}
+        /// <summary>
+        /// </summary>
+        public TN3270HostParser()
+        {
+            var config = new ConnectionConfig();
+            config.HostName = "DUMMY_PARSER";
+            var api = new TN3270API();
 
-		public ConnectionConfig Config
-		{
-			get { return telnet.Config; }
-		}
-		public string Status
-		{
-			get
-			{
-				string text = "";
-				text+= "kybdinhibit = "+telnet.Keyboard.keyboardLock;
-				return text;
-			}
-		}
-		/// <summary>
-		/// Parse a byte of host data
-		/// </summary>
-		/// <param name="ch"></param>
-		public void Parse(byte ch)
-		{
-			if (!telnet.ParseByte(ch))
-				Console.WriteLine("Disconnect should occur next");
-			
-		}
-		#region IAudit Members
+            telnet = new Telnet(api, this, config);
+            telnet.Trace.optionTraceAnsi = true;
+            telnet.Trace.optionTraceDS = true;
+            telnet.Trace.optionTraceDSN = true;
+            telnet.Trace.optionTraceEvent = true;
+            telnet.Trace.optionTraceNetworkData = true;
+            telnet.telnetDataEventOccurred += telnet_telnetDataEvent;
 
-		public void Write(string text)
-		{
-			WriteLine(text);
-		}
+            telnet.Connect(null, null, 0);
+        }
 
-		public void WriteLine(string text)
-		{
-			// TODO:  Add LogParser.WriteLine implementation
-			Console.Write(text);
-		}
+        public ConnectionConfig Config
+        {
+            get { return telnet.Config; }
+        }
 
-		#endregion
+        public string Status
+        {
+            get
+            {
+                var text = "";
+                text += "kybdinhibit = " + telnet.Keyboard.keyboardLock;
+                return text;
+            }
+        }
 
-		private void telnet_telnetDataEvent(object parentData, TNEvent eventType, string text)
-		{
-			Console.WriteLine("EVENT "+eventType+" "+text);
-		}
-	}
+        /// <summary>
+        ///     Parse a byte of host data
+        /// </summary>
+        /// <param name="ch"></param>
+        public void Parse(byte ch)
+        {
+            if (!telnet.ParseByte(ch))
+                Console.WriteLine("Disconnect should occur next");
+        }
+
+        private void telnet_telnetDataEvent(object parentData, TNEvent eventType, string text)
+        {
+            Console.WriteLine("EVENT " + eventType + " " + text);
+        }
+
+        #region IAudit Members
+
+        public void Write(string text)
+        {
+            WriteLine(text);
+        }
+
+        public void WriteLine(string text)
+        {
+            // TODO:  Add LogParser.WriteLine implementation
+            Console.Write(text);
+        }
+
+        #endregion
+    }
 }

@@ -1,4 +1,5 @@
 #region License
+
 /* 
  *
  * Open3270 - A C# implementation of the TN3270/TN3270E protocol
@@ -20,6 +21,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 #endregion
 
 using System;
@@ -27,35 +29,37 @@ using StEn.Open3270.Interfaces;
 
 namespace StEn.Open3270.Exceptions
 {
-	/// <summary>
-	/// An error occured identifying a screen. Usually, this means that the screen didn't match
-	/// any of the match rules you've defined.
-	/// </summary>
-	/// <remarks></remarks>
-	public class TNIdentificationException : Exception
-	{
-		private string mPage;
-		private string mDump;
-		/// <summary>
-		/// Identification exception
-		/// </summary>
-		/// <param name="page">The page we're coming from (not the page we're on!)</param>
-		/// <param name="screen">The IXMLScreen object for the screen that we couldn't recognize</param>
-		public TNIdentificationException(string page, IXMLScreen screen)
-		{
-			mPage = page;
-			if (screen==null)
-				mDump = null;
-			else
-				mDump = screen.Dump();
-		}
-		/// <summary>
-		/// Provides a textual representation of the exception.
-		/// </summary>
-		/// <returns>Returns the textual representation of the exception.</returns>
-		public override string ToString()
-		{
-			return "TNIdentificationException current screen='"+mPage+"'. Dump is \n\n"+mDump+"\n\n";
-		}
-	}
+    /// <summary>
+    ///     An error occured identifying a screen. Usually, this means that the screen didn't match
+    ///     any of the match rules you've defined.
+    /// </summary>
+    /// <remarks></remarks>
+    public class TNIdentificationException : Exception
+    {
+        private readonly string mDump;
+        private readonly string mPage;
+
+        /// <summary>
+        ///     Identification exception
+        /// </summary>
+        /// <param name="page">The page we're coming from (not the page we're on!)</param>
+        /// <param name="screen">The IXMLScreen object for the screen that we couldn't recognize</param>
+        public TNIdentificationException(string page, IXMLScreen screen)
+        {
+            mPage = page;
+            if (screen == null)
+                mDump = null;
+            else
+                mDump = screen.Dump();
+        }
+
+        /// <summary>
+        ///     Provides a textual representation of the exception.
+        /// </summary>
+        /// <returns>Returns the textual representation of the exception.</returns>
+        public override string ToString()
+        {
+            return "TNIdentificationException current screen='" + mPage + "'. Dump is \n\n" + mDump + "\n\n";
+        }
+    }
 }
